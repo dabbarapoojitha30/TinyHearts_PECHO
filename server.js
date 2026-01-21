@@ -1,102 +1,145 @@
-// ------------------- FETCH AND POPULATE TABLE -------------------
-async function fetchPatients() {
-    try {
-        const res = await fetch("/patients");
-        const patients = await res.json();
-        const tbody = document.querySelector("#patientsTable tbody");
-        tbody.innerHTML = "";
+require("dotenv").config();
 
-        patients.forEach(patient => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td>${patient.patient_id}</td>
-                <td>${patient.name}</td>
-                <td>
-                    <button class="btn btn-sm btn-success me-1" onclick="downloadPatientPDF('${patient.patient_id}')">PDF</button>
-                    <button class="btn btn-sm btn-primary me-1" onclick="editPatient('${patient.patient_id}')">Edit</button>
-                    <button class="btn btn-sm btn-danger" onclick="deletePatient('${patient.patient_id}')">Delete</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    } catch (err) {
-        alert("Error fetching patients: " + err.message);
+const express = require("express");
+const cors = require("cors");
+const fs = require("fs");
+const path = require("path");
+const puppeteer = require("puppeteer");
+const pool = require("./db"); // your PostgreSQL pool
+
+const app = express();
+
+// ------------------ MIDDLEWARE ------------------
+app.use(cors());
+app.use(express.json());
+app.use(express.static("public"));
+
+// ------------------ CREATE TABLE IF NOT EXISTS ------------------
+pool.query(`
+CREATE TABLE IF NOT EXISTS patients(
+  patient_id VARCHAR(50) PRIMARY KEY,
+  name VARCHAR(100),
+  dob DATE,
+  age INT,
+  sex VARCHAR(10),
+  weight FLOAT,
+  diagnosis TEXT,
+  situs_loop TEXT,
+  systemic_veins TEXT,
+  pulmonary_veins TEXT,
+  atria TEXT,
+  atrial_septum TEXT,
+  av_valves TEXT,
+  ventricles TEXT,
+  ventricular_septum TEXT,
+  outflow_tracts TEXT,
+  pulmonary_arteries TEXT,
+  aortic_arch TEXT,
+  others_field TEXT,
+  impression TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+`).catch(console.error);
+
+// ------------------ CRUD ROUTES ------------------
+
+// Create or Update patient
+app.post("/patients", async (req, res) => {
+  try {
+    const p = req.body;
+    const fields = [
+      "patient_id","name","dob","age","sex","weight","diagnosis",
+      "situs_loop","systemic_veins","pulmonary_veins","atria",
+      "atrial_septum","av_valves","ventricles","ventricular_septum",
+      "outflow_tracts","pulmonary_arteries","aortic_arch",
+      "others_field","impression"
+    ];
+
+    await pool.query(
+      `INSERT INTO patients (${fields.join(",")})
+       VALUES (${fields.map((_, i) => "$" + (i + 1)).join(",")})
+       ON CONFLICT (patient_id) DO UPDATE SET
+       ${fields.slice(1).map(f => `${f} = EXCLUDED.${f}`).join(",")}`,
+      fields.map(f => p[f] || "")
+    );
+
+    res.json({ status: "success" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get all patients
+app.get("/patients", async (req, res) => {
+  try {
+    const r = await pool.query(
+      "SELECT patient_id, name FROM patients ORDER BY created_at DESC"
+    );
+    res.json(r.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get single patient
+app.get("/patients/:id", async (req, res) => {
+  try {
+    const r = await pool.query(
+      "SELECT * FROM patients WHERE patient_id=$1",
+      [req.params.id]
+    );
+    if (r.rows.length === 0) return res.status(404).json({ error: "Patient not found" });
+    res.json(r.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete patient
+app.delete("/patients/:id", async (req, res) => {
+  try {
+    await pool.query("DELETE FROM patients WHERE patient_id=$1", [req.params.id]);
+    res.json({ status: "success" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ------------------ PDF GENERATION ------------------
+app.post("/generate-pdf", async (req, res) => {
+  try {
+    let html = fs.readFileSync(path.join(__dirname, "public/report.html"), "utf8");
+
+    // Replace template fields
+    for (const key in req.body) {
+      html = html.replace(new RegExp(`{{${key}}}`, "g"), req.body[key] || "");
     }
-}
 
-// ------------------- DOWNLOAD PDF -------------------
-async function downloadPatientPDF(patientId) {
-    try {
-        const res = await fetch(`/patients/${patientId}`);
-        if (!res.ok) { alert("Patient not found"); return; }
+    const css = fs.readFileSync(path.join(__dirname, "public/style.css"), "utf8");
+    html = html.replace("</head>", `<style>${css}</style></head>`);
 
-        const data = await res.json();
+    // Launch Puppeteer
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      executablePath: process.env.CHROME_PATH || undefined
+    });
 
-        const payload = {
-            name: data.name,
-            age: data.age,
-            date: new Date().toLocaleDateString(),
-            sex: data.sex,
-            weight: data.weight,
-            diagnosis: data.diagnosis,
-            situs_loop: data.situs_loop,
-            systemic_veins: data.systemic_veins,
-            pulmonary_veins: data.pulmonary_veins,
-            atria: data.atria,
-            atrial_septum: data.atrial_septum,
-            av_valves: data.av_valves,
-            ventricles: data.ventricles,
-            ventricular_septum: data.ventricular_septum,
-            outflow_tracts: data.outflow_tracts,
-            pulmonary_arteries: data.pulmonary_arteries,
-            aortic_arch: data.aortic_arch,
-            others_field: data.others_field,
-            impression: data.impression
-        };
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "networkidle0" });
 
-        const pdfRes = await fetch("/generate-pdf", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
+    const pdf = await page.pdf({ format: "A4", printBackground: true });
+    await browser.close();
 
-        if (!pdfRes.ok) throw new Error("PDF generation failed on server");
+    res.setHeader("Content-Type", "application/pdf");
+    res.send(pdf);
 
-        const blob = await pdfRes.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${patientId}-TinyHeartsReport.pdf`;
-        a.click();
-        window.URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "PDF generation failed" });
+  }
+});
 
-    } catch (err) {
-        alert("Error generating PDF: " + err.message);
-    }
-}
-
-// ------------------- EDIT PATIENT -------------------
-function editPatient(patientId) {
-    window.location.href = `index.html?update=${patientId}`;
-}
-
-// ------------------- DELETE PATIENT -------------------
-async function deletePatient(patientId) {
-    if (!confirm("Are you sure you want to delete this patient?")) return;
-
-    try {
-        const res = await fetch(`/patients/${patientId}`, { method: "DELETE" });
-        const result = await res.json();
-        if (result.status === "deleted") {
-            alert("Patient deleted!");
-            fetchPatients();
-        } else {
-            alert("Error deleting patient: " + result.message);
-        }
-    } catch (err) {
-        alert("Server error: " + err.message);
-    }
-}
-
-// ------------------- INITIAL LOAD -------------------
-window.addEventListener("DOMContentLoaded", fetchPatients);
+// ------------------ START SERVER ------------------
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
