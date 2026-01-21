@@ -1,13 +1,12 @@
-require("dotenv").config();
+require("dotenv").config(); // loads local .env in development
 const { Pool } = require("pg");
 
-// Automatically uses Render ENV in production, local .env in development
 const db = new Pool({
-  host: process.env.DB_HOST || "localhost",
-  user: process.env.DB_USER || "postgres",
-  password: process.env.DB_PASSWORD || "YOUR_LOCAL_PASSWORD",
-  database: process.env.DB_NAME || "pediatric_echo",
-  port: process.env.DB_PORT || 5432,
+  host: process.env.DB_HOST,         // Use Render DB host in production
+  user: process.env.DB_USER,         // Render DB user
+  password: process.env.DB_PASSWORD, // Render DB password
+  database: process.env.DB_NAME,     // Render DB name
+  port: process.env.DB_PORT || 5432, // default port
   ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false
 });
 
