@@ -114,10 +114,17 @@ async function generatePDFFromHTML(fileName, data) {
   html = html.replace("</head>", `<style>${css}</style></head>`);
 
   const browser = await puppeteer.launch({
-    args: chromium.args,
-    executablePath: await chromium.executablePath(),
-    headless: chromium.headless
-  });
+  args: [
+    ...chromium.args,
+    "--disable-gpu",
+    "--disable-dev-shm-usage",
+    "--no-zygote",
+    "--single-process"
+  ],
+  executablePath: await chromium.executablePath(),
+  headless: true
+});
+
 
   const page = await browser.newPage();
   await page.setDefaultNavigationTimeout(60000); // 60s
