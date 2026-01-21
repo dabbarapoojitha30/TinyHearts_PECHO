@@ -5,129 +5,41 @@
 <title>Tiny Hearts Report</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  /* ---------------- BODY ---------------- */
-  body {
-    font-family: 'Poppins', sans-serif;
-    background: #f2f5f9;
-    margin: 0; padding: 0;
-  }
+  body { font-family: 'Poppins', sans-serif; background: #f2f5f9; margin: 0; padding: 0; }
+  .page { width: 210mm; min-height: 297mm; background: #edd8e9; margin: 10mm auto; padding: 30px; box-shadow: 0 0 10px rgba(0,0,0,0.1); position: relative; }
 
-  .page {
-    width: 210mm;
-    min-height: 297mm;
-    background: #fff;
-    margin: 10mm auto;
-    padding: 30px 40px;
-    position: relative;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    overflow: hidden;
-  }
+  /* Header */
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .header-left h1 { color: #d32f2f; margin: 0; font-size: 26px; }
+  .header-left h2 { margin: 2px 0; font-size: 16px; color: #3a5964; }
+  .header-left h4 { margin: 2px 0; font-size: 12px; }
+  .header-right img { max-height: 150px;mix-blend-mode:color-burn; }
 
-  /* ------------- HEADER ---------------- */
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
+  hr.divider { border: none; border-top: 2px solid #1e3a8a; margin: 10px 0 15px; }
 
-  .header-left h1 {
-    color: #d32f2f;
-    margin: 0;
-    font-size: 28px;
-  }
+  /* Watermark */
+  .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.08; z-index: 0; }
+  .watermark img { width: 300px; }
 
-  .header-left h2 {
-    color: rgb(58, 89, 100);
-    margin: 2px 0;
-    font-size: 16px;
-  }
+  /* Label + Value stacked */
+  .field { margin-bottom: 6px; font-size: 14px; }
+  .field-label { font-weight: 500; }
+  .field-value { font-weight: 400; margin-left: 4px; }
+  p{text-align: left;}
+  /* Section Titles */
+  .section-title { font-weight: 600; margin: 15px 0 5px; text-decoration: underline; font-size: 16px; }
 
-  .header-left h4 {
-    margin: 2px 0;
-    font-size: 12px;
-  }
+  /* Impression Box */
+  .impression { border: 1px solid #ddd; padding: 10px; font-size: 14px; min-height: 50px; margin-bottom: 20px; }
 
-  .header-right img {
-    max-height: 150px;
-  }
+  /* Doctor Sign */
+  .doctor-sign { text-align: right; margin-top: 30px; font-size: 14px; }
+  .doctor-sign h3 { margin: 0; }
+  .doctor-sign p { margin: 2px 0 0 0; font-style: italic; }
 
-  hr.divider {
-    border: none;
-    border-top: 2px solid #1e3a8a;
-    margin: 15px 0 25px;
-  }
-
-  /* ------------- WATERMARK ------------- */
-  .watermark {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    opacity: 0.08;
-    z-index: 0;
-  }
-  .watermark img {
-    width: 500px;
-  }
-
-  /* ------------- CONTENT ---------------- */
-  .content {
-    position: relative;
-    z-index: 1;
-  }
-
-  .patient-info {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    font-size: 14px;
-  }
-  .patient-info p {
-    width: 48%;
-    margin-bottom: 6px;
-  }
-
-  .section-title {
-    font-weight: 1000;
-    margin-top: 50px;
-    text-decoration: underline;
-    font-size:20px;
-    color: #1e3a8a;
-  }
-
-  .field-label {
-    font-weight:1000;
-    font-size: larger;
-  }
-
-  .report-body {
-    font-size: 14px;
-    line-height: 1.8;
-    white-space: pre-wrap;
-  }
-
-  .doctor-sign {
-    margin-top: 40px;
-    text-align: right;
-    font-size: 14px;
-  }
-
-  .doctor-sign h3 {
-    margin: 0; font-size: 16px;
-  }
-
-  .doctor-sign p {
-    margin: 0; font-style: italic;
-  }
- p{
-  text-align: left;
-  font: weight 10px; ;
- }
-  /* ------------- PRINT FRIENDLY -------- */
   @media print {
     body { background: none; }
     .page { box-shadow: none; margin: 0; }
-    .watermark { opacity: 0.08; }
   }
 </style>
 </head>
@@ -135,7 +47,7 @@
 
 <div class="page">
 
-  <!-- HEADER -->
+  <!-- Header -->
   <div class="header">
     <div class="header-left">
       <h1>TINY HEARTS</h1>
@@ -144,58 +56,52 @@
       <h4>E-mail: tinyheartsthanjavur@gmail.com</h4>
     </div>
     <div class="header-right">
-      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQMvSDnGGWqdpkPfwu5e9NH2_IkhSXJTx7wtQ&s" alt="Tiny Hearts Logo">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQMvSDnGGWqdpkPfwu5e9NH2_IkhSXJTx7wtQ&s" alt="Logo">
     </div>
   </div>
 
   <hr class="divider">
 
-  <!-- WATERMARK -->
+  <!-- Watermark -->
   <div class="watermark">
     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQMvSDnGGWqdpkPfwu5e9NH2_IkhSXJTx7wtQ&s" alt="Watermark">
   </div>
 
-  <!-- CONTENT -->
-  <div class="content">
+  <!-- Patient Info -->
+  <div class="section-title">Patient Details</div>
+  <div class="field"><span class="field-label">Patient Name:</span> <span class="field-value">{{name}}</span></div>
+  <div class="field"><span class="field-label">Age:</span> <span class="field-value">{{age}}</span></div>
+  <div class="field"><span class="field-label">Date:</span> <span class="field-value">{{date}}</span></div>
+  <div class="field"><span class="field-label">Sex:</span> <span class="field-value">{{sex}}</span></div>
+  <div class="field"><span class="field-label">Weight (kg):</span> <span class="field-value">{{weight}}</span></div>
+  <div class="field"><span class="field-label">Diagnosis:</span> <span class="field-value">{{diagnosis}}</span></div>
 
-    <!-- PATIENT INFO -->
-    <div class="patient-info">
-      <p><span class="field-label">Patient Name:</span> {{name}}</p>
-      <p><span class="field-label">Age:</span> {{age}}</p>
-      <p><span class="field-label">Date:</span> {{date}}</p>
-      <p><span class="field-label">Sex:</span> {{sex}}</p>
-      <p><span class="field-label">Weight (kg):</span> {{weight}}</p>
-      <p><span class="field-label">Diagnosis:</span> {{diagnosis}}</p>
-    </div>
+  <!-- Segmental Anatomy -->
+  <div class="section-title">Segmental Anatomy</div>
+  <div class="field"><span class="field-label">Situs & Looping:</span> <span class="field-value">{{situs_loop}}</span></div>
+  <div class="field"><span class="field-label">Systemic Veins:</span> <span class="field-value">{{systemic_veins}}</span></div>
+  <div class="field"><span class="field-label">Pulmonary Veins:</span> <span class="field-value">{{pulmonary_veins}}</span></div>
+  <div class="field"><span class="field-label">Atria:</span> <span class="field-value">{{atria}}</span></div>
+  <div class="field"><span class="field-label">Atrial Septum:</span> <span class="field-value">{{atrial_septum}}</span></div>
+  <div class="field"><span class="field-label">AV Valves:</span> <span class="field-value">{{av_valves}}</span></div>
+  <div class="field"><span class="field-label">Ventricles:</span> <span class="field-value">{{ventricles}}</span></div>
+  <div class="field"><span class="field-label">Ventricular Septum:</span> <span class="field-value">{{ventricular_septum}}</span></div>
+  <div class="field"><span class="field-label">Outflow Tracts:</span> <span class="field-value">{{outflow_tracts}}</span></div>
+  <div class="field"><span class="field-label">Pulmonary Arteries:</span> <span class="field-value">{{pulmonary_arteries}}</span></div>
+  <div class="field"><span class="field-label">Aortic Arch:</span> <span class="field-value">{{aortic_arch}}</span></div>
+  <div class="field"><span class="field-label">Others:</span> <span class="field-value">{{others_field}}</span></div>
 
-    <!-- SEGMENTAL ANATOMY -->
-    <div class="section-title">Segmental Anatomy</div>
-    <div class="report-body">
-      <p><span class="field-label">Situs & Looping:</span> {{situs_loop}}</p>
-      <p><span class="field-label">Systemic Veins:</span> {{systemic_veins}}</p>
-      <p><span class="field-label">Pulmonary Veins:</span> {{pulmonary_veins}}</p>
-      <p><span class="field-label">Atria:</span> {{atria}}</p>
-      <p><span class="field-label">Atrial Septum:</span> {{atrial_septum}}</p>
-      <p><span class="field-label">AV Valves:</span> {{av_valves}}</p>
-      <p><span class="field-label">Ventricles:</span> {{ventricles}}</p>
-      <p><span class="field-label">Ventricular Septum:</span> {{ventricular_septum}}</p>
-      <p><span class="field-label">Outflow Tracts:</span> {{outflow_tracts}}</p>
-      <p><span class="field-label">Pulmonary Arteries:</span> {{pulmonary_arteries}}</p>
-      <p><span class="field-label">Aortic Arch:</span> {{aortic_arch}}</p>
-      <p><span class="field-label">Others:</span> {{others_field}}</p>
-    </div>
+  <!-- Impression -->
+  <div class="section-title">Impression</div>
+  <div class="impression">{{impression}}</div>
 
-    <!-- IMPRESSION -->
-    <div class="section-title">Impression</div>
-    <div class="report-body">{{impression}}</div>
-
-    <!-- DOCTOR SIGN -->
-    <div class="doctor-sign">
-      <h3>Dr. Mani Ram Krishna</h3>
-      <p>Kindly note that this is a bedside evaluation performed under sub-optimal conditions.</p>
-    </div>
-
+  <!-- Doctor Sign -->
+  <div class="doctor-sign">
+    <h3>Dr. Mani Ram Krishna</h3>
+    <p><i>Kindly note that this is a bedside evaluation performed under sub-optimal conditions.</i></p>
   </div>
+
 </div>
+
 </body>
 </html>
