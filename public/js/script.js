@@ -1,7 +1,7 @@
-// Live Date
+// ------------------- LIVE DATE -------------------
 document.getElementById('currentDate').innerText = new Date().toLocaleDateString();
 
-// Auto-calculate Age from DOB
+// ------------------- AUTO-CALCULATE AGE -------------------
 const dobInput = document.getElementById('dob');
 const ageInput = document.getElementById('age');
 const patientIdInput = document.getElementById('patientId');
@@ -15,7 +15,7 @@ dobInput.addEventListener('change', () => {
     ageInput.value = age >= 0 ? age : '';
 });
 
-// Toggle "Others" textarea
+// ------------------- TOGGLE "OTHERS" TEXTAREA -------------------
 const toggleOthers = (selectId, textareaId) => {
     const sel = document.getElementById(selectId);
     const ta = document.getElementById(textareaId);
@@ -47,7 +47,7 @@ function getValue(selectId, otherId) {
     return sel.value === 'Others' ? document.getElementById(otherId).value : sel.value;
 }
 
-// Form Submission
+// ------------------- FORM SUBMISSION -------------------
 const form = document.getElementById('echoForm');
 const params = new URLSearchParams(window.location.search);
 const updateId = params.get("update");
@@ -98,8 +98,32 @@ form.addEventListener('submit', async e => {
     } catch(err){ alert('Server error: '+err.message); }
 });
 
-// Download PDF
-document.getElementById("downloadReport").addEventListener("click", async () => {
+// ------------------- DOWNLOAD PDF -------------------
+async function downloadPDF(data) {
+    try {
+        const res = await fetch("/generate-pdf", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        if(!res.ok) throw new Error("Server returned " + res.status);
+
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `TinyHeartsReport-${data.name}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+
+    } catch(err) {
+        alert('PDF generation failed: ' + err.message);
+    }
+}
+
+// "Download Report" button click
+document.getElementById("downloadReport").addEventListener("click", () => {
     const payload = {
         name: document.getElementById("name").value,
         age: document.getElementById("age").value,
@@ -122,26 +146,12 @@ document.getElementById("downloadReport").addEventListener("click", async () => 
         impression: getValue('impression','impressionOther')
     };
 
-    try {
-        const res = await fetch("/generate-pdf", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
+    if(!payload.name.trim()){ alert("Enter patient name before downloading PDF"); return; }
 
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `TinyHeartsReport-${payload.name}.pdf`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-    } catch(err) {
-        alert('PDF generation failed: ' + err.message);
-    }
+    downloadPDF(payload);
 });
 
-// Search Patient by ID
+// ------------------- SEARCH PATIENT BY ID -------------------
 document.getElementById("searchBtn").addEventListener("click", async () => {
     const searchId = document.getElementById("searchId").value.trim();
     if(!searchId){ alert("Enter Patient ID"); return; }
