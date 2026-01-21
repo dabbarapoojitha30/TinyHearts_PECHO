@@ -8,12 +8,11 @@ const puppeteer = require("puppeteer"); // full Puppeteer
 const pool = require("./db"); // PostgreSQL connection
 
 const app = express();
-
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public")); // serve HTML, CSS, JS
 
-/* ------------------ CREATE TABLE IF NOT EXISTS ------------------ */
+/* ------------------ CREATE TABLE ------------------ */
 pool.query(`
 CREATE TABLE IF NOT EXISTS patients(
   patient_id VARCHAR(50) PRIMARY KEY,
@@ -41,7 +40,6 @@ CREATE TABLE IF NOT EXISTS patients(
 `).catch(console.error);
 
 /* ------------------ CRUD ROUTES ------------------ */
-
 // CREATE PATIENT
 app.post("/patients", async (req, res) => {
   try {
@@ -67,12 +65,10 @@ app.post("/patients", async (req, res) => {
   }
 });
 
-// GET ALL PATIENTS (for table)
+// GET ALL PATIENTS
 app.get("/patients", async (req, res) => {
   try {
-    const r = await pool.query(
-      "SELECT patient_id, name FROM patients ORDER BY created_at DESC"
-    );
+    const r = await pool.query("SELECT patient_id, name FROM patients ORDER BY created_at DESC");
     res.json(r.rows);
   } catch(err){
     console.error(err);
@@ -80,13 +76,10 @@ app.get("/patients", async (req, res) => {
   }
 });
 
-// GET SINGLE PATIENT BY ID
+// GET SINGLE PATIENT
 app.get("/patients/:id", async (req, res) => {
   try {
-    const r = await pool.query(
-      "SELECT * FROM patients WHERE patient_id=$1",
-      [req.params.id]
-    );
+    const r = await pool.query("SELECT * FROM patients WHERE patient_id=$1", [req.params.id]);
     if(r.rows.length === 0) return res.status(404).json({ error: "Patient not found" });
     res.json(r.rows[0]);
   } catch(err){
@@ -121,17 +114,17 @@ app.post("/generate-pdf", async (req, res) => {
     const css = fs.readFileSync(path.join(__dirname, "public/style.css"), "utf8");
     html = html.replace("</head>", `<style>${css}</style></head>`);
 
-    // Launch Puppeteer
+    // Launch Puppeteer with Render-friendly config
     const browser = await puppeteer.launch({
       headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"]
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      executablePath: process.env.CHROME_PATH || "/usr/bin/google-chrome-stable"
     });
 
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "networkidle0" });
 
     const pdf = await page.pdf({ format: "A4", printBackground: true });
-
     await browser.close();
 
     res.setHeader("Content-Type", "application/pdf");
