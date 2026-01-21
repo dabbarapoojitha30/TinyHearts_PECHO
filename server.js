@@ -6,8 +6,7 @@ const fs = require("fs");
 const path = require("path");
 const puppeteer = require("puppeteer-core");
 const chromium = require("@sparticuz/chromium");
-// full Puppeteer
-const pool = require("./db"); // your PostgreSQL connection
+const pool = require("./db");
 
 const app = express();
 
@@ -15,7 +14,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public")); // serve HTML, CSS, JS
 
-/* ------------------ CREATE TABLE IF NOT EXISTS ------------------ */
+/* ------------------ CREATE TABLE ------------------ */
 pool.query(`
 CREATE TABLE IF NOT EXISTS patients(
   patient_id VARCHAR(50) PRIMARY KEY,
@@ -43,8 +42,6 @@ CREATE TABLE IF NOT EXISTS patients(
 `).catch(console.error);
 
 /* ------------------ CRUD ROUTES ------------------ */
-
-// CREATE PATIENT
 app.post("/patients", async (req, res) => {
   try {
     const p = req.body;
@@ -69,7 +66,6 @@ app.post("/patients", async (req, res) => {
   }
 });
 
-// GET ALL PATIENTS
 app.get("/patients", async (req, res) => {
   try {
     const r = await pool.query(
@@ -82,7 +78,6 @@ app.get("/patients", async (req, res) => {
   }
 });
 
-// GET SINGLE PATIENT BY ID
 app.get("/patients/:id", async (req, res) => {
   try {
     const r = await pool.query(
@@ -97,7 +92,6 @@ app.get("/patients/:id", async (req, res) => {
   }
 });
 
-// DELETE PATIENT
 app.delete("/patients/:id", async (req, res) => {
   try {
     await pool.query("DELETE FROM patients WHERE patient_id=$1", [req.params.id]);
@@ -109,56 +103,60 @@ app.delete("/patients/:id", async (req, res) => {
 });
 
 /* ------------------ PDF GENERATION ------------------ */
+async function generatePDFFromHTML(fileName, data) {
+  let html = fs.readFileSync(path.join(__dirname, "public", fileName), "utf8");
+
+  for (const key in data) {
+    html = html.replace(new RegExp(`{{${key}}}`, "g"), data[key] || "");
+  }
+
+  const css = fs.readFileSync(path.join(__dirname, "public/style.css"), "utf8");
+  html = html.replace("</head>", `<style>${css}</style></head>`);
+
+  const browser = await puppeteer.launch({
+    args: chromium.args,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless
+  });
+
+  const page = await browser.newPage();
+  await page.setDefaultNavigationTimeout(60000); // 60s
+  await page.setContent(html, { waitUntil: "networkidle0" });
+
+  const pdf = await page.pdf({
+    format: "A4",
+    printBackground: true
+  });
+
+  await browser.close();
+  return pdf;
+}
+
+// PDF from report.html
 app.post("/generate-pdf", async (req, res) => {
   try {
-    let html = fs.readFileSync(
-      path.join(__dirname, "public/report.html"),
-      "utf8"
-    );
-
-    for (const key in req.body) {
-      html = html.replace(
-        new RegExp(`{{${key}}}`, "g"),
-        req.body[key] || ""
-      );
-    }
-
-    const css = fs.readFileSync(
-      path.join(__dirname, "public/style.css"),
-      "utf8"
-    );
-    html = html.replace("</head>", `<style>${css}</style></head>`);
-
-    const browser = await puppeteer.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless
-    });
-
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle0" });
-
-    const pdf = await page.pdf({
-      format: "A4",
-      printBackground: true
-    });
-
-    await browser.close();
-
+    const pdf = await generatePDFFromHTML("report.html", req.body);
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      'attachment; filename="TinyHeartsReport.pdf"'
-    );
+    res.setHeader("Content-Disposition", 'attachment; filename="TinyHeartsReport.pdf"');
     res.send(pdf);
-
   } catch (err) {
     console.error("PDF generation error:", err);
     res.status(500).json({ error: "PDF generation failed" });
   }
 });
 
-
+// PDF from record.html
+app.post("/generate-pdf-record", async (req, res) => {
+  try {
+    const pdf = await generatePDFFromHTML("record.html", req.body);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", 'attachment; filename="TinyHeartsRecord.pdf"');
+    res.send(pdf);
+  } catch (err) {
+    console.error("PDF generation error:", err);
+    res.status(500).json({ error: "PDF generation failed" });
+  }
+});
 
 /* ------------------ START SERVER ------------------ */
 const PORT = process.env.PORT || 10000;
