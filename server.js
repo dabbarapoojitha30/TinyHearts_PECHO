@@ -121,7 +121,7 @@ app.post("/generate-pdf", async (req, res) => {
     const css = fs.readFileSync(path.join(__dirname, "public/style.css"), "utf8");
     html = html.replace("</head>", `<style>${css}</style></head>`);
 
-    // Launch Puppeteer (Render-friendly)
+    // Launch Puppeteer
     const browser = await puppeteer.launch({
       headless: true,
       args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -134,7 +134,6 @@ app.post("/generate-pdf", async (req, res) => {
 
     await browser.close();
 
-    // Send PDF
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename="TinyHeartsReport-${req.body.name}.pdf"`);
     res.send(pdf);
