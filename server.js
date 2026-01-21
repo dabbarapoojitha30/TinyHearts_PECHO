@@ -107,6 +107,7 @@ app.delete("/patients/:id", async (req, res) => {
 });
 
 /* ------------------ PDF GENERATION ------------------ */
+/* ------------------ PDF GENERATION ------------------ */
 app.post("/generate-pdf", async (req, res) => {
   try {
     let html = fs.readFileSync(
@@ -127,10 +128,16 @@ app.post("/generate-pdf", async (req, res) => {
     );
     html = html.replace("</head>", `<style>${css}</style></head>`);
 
+    // ✅ CORRECT PUPPETEER LAUNCH FOR RENDER
     const browser = await puppeteer.launch({
       headless: "new",
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      executablePath: puppeteer.executablePath()
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu"
+      ]
+      // ❌ DO NOT SET executablePath
     });
 
     const page = await browser.newPage();
@@ -146,9 +153,10 @@ app.post("/generate-pdf", async (req, res) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="TinyHeartsReport.pdf"`
+      'attachment; filename="TinyHeartsReport.pdf"'
     );
     res.send(pdf);
+
   } catch (err) {
     console.error("PDF generation error:", err);
     res.status(500).json({ error: "PDF generation failed" });
