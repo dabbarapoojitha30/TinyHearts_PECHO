@@ -1,0 +1,52 @@
+body { background: #f2f5f9; font-family: 'Poppins', sans-serif;
+border-top: 4px solid red;
+margin:0;padding:0 }
+
+.page {
+  width: 210mm;
+  min-height: 297mm;
+  background: #fff;
+  margin: 20px auto;
+  padding: 30px 40px;
+  position: relative;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  border: #1e3a8a;
+  margin:0;padding:0;
+}
+.subtitle{
+  color:rgb(58, 89, 100)
+}
+h1,h2{
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+
+
+/* HEADER */
+.header { display: flex; justify-content: space-between; align-items: center; }
+.header-left h1 { color: #d32f2f; margin: 0; }
+.header-left p { margin: 2px 0; font-size: 13px; }
+.header-right img { width: 110px; }
+
+.divider { border:none; border-top:2px solid #1e3a8a; margin:15px 0 25px; }
+
+/* Watermark */
+.watermark { position: absolute; top:50%; left:50%; transform: translate(-50%, -50%); opacity:0.08; z-index:0; }
+.watermark img { width:300px; }
+
+/* CONTENT */
+.content { position: relative; z-index:1; }
+.patient-info { display:flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px; flex-wrap: wrap; }
+.patient-info p { width: 48%; margin-bottom: 5px; }
+.section-title { font-weight: 600; margin-top: 15px; text-decoration: underline; }
+.field-label { font-weight: 500; }
+.report-body { font-size: 15px; line-height: 1.8; white-space: pre-wrap; }
+.doctor-sign p { margin: 0; }
+h3{
+  text-align: right;
+}
+/* PRINT FRIENDLY */
+@media print {
+  body { background: none; }
+  .page { box-shadow:none; margin:0; }
+}
