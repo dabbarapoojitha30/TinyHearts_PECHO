@@ -5,16 +5,15 @@ const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
 const puppeteer = require("puppeteer");
-const pool = require("./db"); // your PostgreSQL pool
+const pool = require("./db"); // your PostgreSQL pool connection
 
 const app = express();
 
-// ------------------ MIDDLEWARE ------------------
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
-// ------------------ CREATE TABLE IF NOT EXISTS ------------------
+// ------------------ CREATE TABLE ------------------
 pool.query(`
 CREATE TABLE IF NOT EXISTS patients(
   patient_id VARCHAR(50) PRIMARY KEY,
@@ -42,8 +41,6 @@ CREATE TABLE IF NOT EXISTS patients(
 `).catch(console.error);
 
 // ------------------ CRUD ROUTES ------------------
-
-// Create or Update patient
 app.post("/patients", async (req, res) => {
   try {
     const p = req.body;
@@ -57,9 +54,7 @@ app.post("/patients", async (req, res) => {
 
     await pool.query(
       `INSERT INTO patients (${fields.join(",")})
-       VALUES (${fields.map((_, i) => "$" + (i + 1)).join(",")})
-       ON CONFLICT (patient_id) DO UPDATE SET
-       ${fields.slice(1).map(f => `${f} = EXCLUDED.${f}`).join(",")}`,
+       VALUES (${fields.map((_, i) => "$" + (i + 1)).join(",")})`,
       fields.map(f => p[f] || "")
     );
 
@@ -69,7 +64,6 @@ app.post("/patients", async (req, res) => {
   }
 });
 
-// Get all patients
 app.get("/patients", async (req, res) => {
   try {
     const r = await pool.query(
@@ -81,21 +75,19 @@ app.get("/patients", async (req, res) => {
   }
 });
 
-// Get single patient
 app.get("/patients/:id", async (req, res) => {
   try {
     const r = await pool.query(
       "SELECT * FROM patients WHERE patient_id=$1",
       [req.params.id]
     );
-    if (r.rows.length === 0) return res.status(404).json({ error: "Patient not found" });
+    if (!r.rows[0]) return res.status(404).json({ error: "Patient not found" });
     res.json(r.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Delete patient
 app.delete("/patients/:id", async (req, res) => {
   try {
     await pool.query("DELETE FROM patients WHERE patient_id=$1", [req.params.id]);
@@ -108,27 +100,39 @@ app.delete("/patients/:id", async (req, res) => {
 // ------------------ PDF GENERATION ------------------
 app.post("/generate-pdf", async (req, res) => {
   try {
-    let html = fs.readFileSync(path.join(__dirname, "public/report.html"), "utf8");
+    let html = fs.readFileSync(
+      path.join(__dirname, "public/report.html"),
+      "utf8"
+    );
 
-    // Replace template fields
+    // Replace placeholders with submitted data
     for (const key in req.body) {
-      html = html.replace(new RegExp(`{{${key}}}`, "g"), req.body[key] || "");
+      html = html.replace(
+        new RegExp(`{{${key}}}`, "g"),
+        req.body[key] || ""
+      );
     }
 
-    const css = fs.readFileSync(path.join(__dirname, "public/style.css"), "utf8");
+    const css = fs.readFileSync(
+      path.join(__dirname, "public/style.css"),
+      "utf8"
+    );
     html = html.replace("</head>", `<style>${css}</style></head>`);
 
-    // Launch Puppeteer
+    // Puppeteer launch for Render
     const browser = await puppeteer.launch({
       headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      executablePath: process.env.CHROME_PATH || undefined
+      args: ["--no-sandbox", "--disable-setuid-sandbox"]
     });
 
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "networkidle0" });
 
-    const pdf = await page.pdf({ format: "A4", printBackground: true });
+    const pdf = await page.pdf({
+      format: "A4",
+      printBackground: true
+    });
+
     await browser.close();
 
     res.setHeader("Content-Type", "application/pdf");
@@ -142,4 +146,6 @@ app.post("/generate-pdf", async (req, res) => {
 
 // ------------------ START SERVER ------------------
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+});
