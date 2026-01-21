@@ -2,16 +2,19 @@
   "name": "pedechon",
   "version": "1.0.0",
   "type": "commonjs",
-  "main": "server.js",
+  "engines": {
+    "node": "18.x"
+  },
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
+    "@sparticuz/chromium": "^119.0.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "pg": "^8.17.1",
-    "puppeteer": "^24.35.0",
+    "puppeteer-core": "^24.35.0",
     "uuid": "^13.0.0"
   }
 }

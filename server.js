@@ -4,7 +4,9 @@ const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
-const puppeteer = require("puppeteer"); // full Puppeteer
+const puppeteer = require("puppeteer-core");
+const chromium = require("@sparticuz/chromium");
+// full Puppeteer
 const pool = require("./db"); // your PostgreSQL connection
 
 const app = express();
@@ -107,7 +109,6 @@ app.delete("/patients/:id", async (req, res) => {
 });
 
 /* ------------------ PDF GENERATION ------------------ */
-/* ------------------ PDF GENERATION ------------------ */
 app.post("/generate-pdf", async (req, res) => {
   try {
     let html = fs.readFileSync(
@@ -128,16 +129,10 @@ app.post("/generate-pdf", async (req, res) => {
     );
     html = html.replace("</head>", `<style>${css}</style></head>`);
 
-    // ✅ CORRECT PUPPETEER LAUNCH FOR RENDER
     const browser = await puppeteer.launch({
-      headless: "new",
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu"
-      ]
-      // ❌ DO NOT SET executablePath
+      args: chromium.args,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless
     });
 
     const page = await browser.newPage();
@@ -162,6 +157,7 @@ app.post("/generate-pdf", async (req, res) => {
     res.status(500).json({ error: "PDF generation failed" });
   }
 });
+
 
 
 /* ------------------ START SERVER ------------------ */
