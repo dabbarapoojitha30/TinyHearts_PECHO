@@ -16,14 +16,14 @@
 <div class="page">
 
   <!-- HEADER -->
-<div class="header">
-  <div class="header-left">
-    <h1>TINY HEARTS</h1>
-    <h2 class="subtitle">FETAL & PEDIATRIC CARDIAC CLINIC</h2>
-    <h4 class="contact">Phone: 79044 45293 / 04362 271171</h4>
-    <h4 class="contact">E-mail: tinyheartsthanjavur@gmail.com</h4>
-  </div>
-  <div class="header-right">
+  <div class="header">
+    <div class="header-left">
+      <h1>TINY HEARTS</h1>
+      <h2 class="subtitle">FETAL & PEDIATRIC CARDIAC CLINIC</h2>
+      <h4 class="contact">Phone: 79044 45293 / 04362 271171</h4>
+      <h4 class="contact">E-mail: tinyheartsthanjavur@gmail.com</h4>
+    </div>
+    <div class="header-right">
     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQMvSDnGGWqdpkPfwu5e9NH2_IkhSXJTx7wtQ&s" alt="Tiny Hearts Logo" style="max-height:80px;">
   </div>
 </div>
@@ -34,8 +34,6 @@
 <div class="watermark">
   <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQMvSDnGGWqdpkPfwu5e9NH2_IkhSXJTx7wtQ&s" alt="Watermark Logo" style="opacity:0.1; width:200px; position:absolute; top:150px; left:150px;">
 </div>
-
-
   <!-- CONTENT -->
   <div class="content">
     <!-- Patient Info -->
@@ -50,11 +48,29 @@
 
     <!-- Segmental Anatomy -->
     <div class="section-title">Segmental Anatomy</div>
-    ... same placeholders ...
+    <p><span class="field-label">Situs & Looping:</span> {{situs_loop}}</p>
+    <p><span class="field-label">Systemic Veins:</span> {{systemic_veins}}</p>
+    <p><span class="field-label">Pulmonary Veins:</span> {{pulmonary_veins}}</p>
+    <p><span class="field-label">Atria:</span> {{atria}}</p>
+    <p><span class="field-label">Atrial Septum:</span> {{atrial_septum}}</p>
+    <p><span class="field-label">AV Valves:</span> {{av_valves}}</p>
+    <p><span class="field-label">Ventricles:</span> {{ventricles}}</p>
+    <p><span class="field-label">Ventricular Septum:</span> {{ventricular_septum}}</p>
+    <p><span class="field-label">Outflow Tracts:</span> {{outflow_tracts}}</p>
+    <p><span class="field-label">Pulmonary Arteries:</span> {{pulmonary_arteries}}</p>
+    <p><span class="field-label">Aortic Arch:</span> {{aortic_arch}}</p>
+    <p><span class="field-label">Others:</span> {{others_field}}</p>
+
+    <!-- Impression -->
     <div class="section-title">Impression</div>
     <p>{{impression}}</p>
 
+    <div class="doctor-sign text-end mt-4">
+      <h3>Dr. Mani Ram Krishna</h3>
+      <p><i>Kindly note that this is a bedside evaluation performed under sub-optimal conditions.</i></p>
+    </div>
   </div>
+
 </div>
 
 </body>
