@@ -1,5 +1,6 @@
 // ------------------- LIVE DATE -------------------
-document.getElementById('currentDate').innerText = new Date().toLocaleDateString();
+document.getElementById('currentDate').innerText =
+    new Date().toLocaleDateString();
 
 // ------------------- AUTO-CALCULATE AGE -------------------
 const dobInput = document.getElementById('dob');
@@ -42,22 +43,70 @@ const othersFields = [
 ];
 othersFields.forEach(f => toggleOthers(f[0], f[1]));
 
-function getValue(selectId, otherId) {
+function setSelectOrOther(selectId, otherId, value){
     const sel = document.getElementById(selectId);
-    return sel.value === 'Others' ? document.getElementById(otherId).value : sel.value;
+    const ta = document.getElementById(otherId);
+
+    if ([...sel.options].some(o => o.value === value)) {
+        sel.value = value;
+        ta.classList.add('d-none');
+    } else {
+        sel.value = 'Others';
+        ta.classList.remove('d-none');
+        ta.value = value;
+    }
 }
 
-// ------------------- FORM SUBMISSION -------------------
-const form = document.getElementById('echoForm');
+function getValue(selectId, otherId) {
+    const sel = document.getElementById(selectId);
+    return sel.value === 'Others'
+        ? document.getElementById(otherId).value
+        : sel.value;
+}
+
+// ------------------- LOAD PATIENT FOR EDIT -------------------
 const params = new URLSearchParams(window.location.search);
 const updateId = params.get("update");
 
+if (updateId) {
+    fetch(`/patients/${updateId}`)
+        .then(res => res.json())
+        .then(data => {
+            patientIdInput.value = data.patient_id;
+            patientIdInput.readOnly = true;
+
+            document.getElementById('name').value = data.name;
+            dobInput.value = data.dob;
+            ageInput.value = data.age;
+            document.getElementById('sex').value = data.sex;
+            document.getElementById('weight').value = data.weight;
+
+            setSelectOrOther('diagnosis','diagnosisOther',data.diagnosis);
+            setSelectOrOther('situsLoop','situsLoopOther',data.situs_loop);
+            setSelectOrOther('systemicVeins','systemicVeinsOther',data.systemic_veins);
+            setSelectOrOther('pulmonaryVeins','pulmonaryVeinsOther',data.pulmonary_veins);
+            setSelectOrOther('atria','atriaOther',data.atria);
+            setSelectOrOther('atrialSeptum','atrialSeptumOther',data.atrial_septum);
+            setSelectOrOther('avValves','avValvesOther',data.av_valves);
+            setSelectOrOther('ventricles','ventriclesOther',data.ventricles);
+            setSelectOrOther('ventricularSeptum','ventricularSeptumOther',data.ventricular_septum);
+            setSelectOrOther('outflowTracts','outflowTractsOther',data.outflow_tracts);
+            setSelectOrOther('pulmonaryArteries','pulmonaryArteriesOther',data.pulmonary_arteries);
+            setSelectOrOther('aorticArch','aorticArchOther',data.aortic_arch);
+            setSelectOrOther('othersField','othersFieldOther',data.others_field);
+            setSelectOrOther('impression','impressionOther',data.impression);
+        })
+        .catch(err => alert("Failed to load patient"));
+}
+
+// ------------------- FORM SUBMIT -------------------
+const form = document.getElementById('echoForm');
+
 form.addEventListener('submit', async e => {
     e.preventDefault();
-    if (!patientIdInput.value.trim()) { alert("Patient ID required"); return; }
 
-    const data = {
-        patient_id: patientIdInput.value.trim(),
+    const payload = {
+        patient_id: patientIdInput.value,
         name: document.getElementById('name').value,
         dob: dobInput.value,
         age: ageInput.value,
@@ -82,89 +131,17 @@ form.addEventListener('submit', async e => {
     const method = updateId ? 'PUT' : 'POST';
     const url = updateId ? `/patients/${updateId}` : '/patients';
 
-    try {
-        const res = await fetch(url, {
-            method,
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(data)
-        });
-        const result = await res.json();
-        if(result.status === 'success'){
-            alert(updateId ? 'Patient updated!' : 'Patient saved!');
-            if(!updateId) form.reset(); 
-            ageInput.value='';
-            if(updateId) window.location.href='records.html';
-        } else alert('Error: '+result.message);
-    } catch(err){ alert('Server error: '+err.message); }
-});
+    const res = await fetch(url, {
+        method,
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+    });
 
-// ------------------- DOWNLOAD PDF -------------------
-async function downloadPDF(data) {
-    try {
-        const res = await fetch("/generate-pdf", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-        });
-
-        if(!res.ok) throw new Error("Server returned " + res.status);
-
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `TinyHeartsReport-${data.name}.pdf`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-
-    } catch(err) {
-        alert('PDF generation failed: ' + err.message);
-    }
-}
-
-// "Download Report" button click
-document.getElementById("downloadReport").addEventListener("click", () => {
-    const payload = {
-        name: document.getElementById("name").value,
-        age: document.getElementById("age").value,
-        date: new Date().toLocaleDateString(),
-        sex: document.getElementById("sex").value,
-        weight: document.getElementById("weight").value,
-        diagnosis: getValue('diagnosis','diagnosisOther'),
-        situs_loop: getValue('situsLoop','situsLoopOther'),
-        systemic_veins: getValue('systemicVeins','systemicVeinsOther'),
-        pulmonary_veins: getValue('pulmonaryVeins','pulmonaryVeinsOther'),
-        atria: getValue('atria','atriaOther'),
-        atrial_septum: getValue('atrialSeptum','atrialSeptumOther'),
-        av_valves: getValue('avValves','avValvesOther'),
-        ventricles: getValue('ventricles','ventriclesOther'),
-        ventricular_septum: getValue('ventricularSeptum','ventricularSeptumOther'),
-        outflow_tracts: getValue('outflowTracts','outflowTractsOther'),
-        pulmonary_arteries: getValue('pulmonaryArteries','pulmonaryArteriesOther'),
-        aortic_arch: getValue('aorticArch','aorticArchOther'),
-        others_field: getValue('othersField','othersFieldOther'),
-        impression: getValue('impression','impressionOther')
-    };
-
-    if(!payload.name.trim()){ alert("Enter patient name before downloading PDF"); return; }
-
-    downloadPDF(payload);
-});
-
-// ------------------- SEARCH PATIENT BY ID -------------------
-document.getElementById("searchBtn").addEventListener("click", async () => {
-    const searchId = document.getElementById("searchId").value.trim();
-    if(!searchId){ alert("Enter Patient ID"); return; }
-    try{
-        const res = await fetch(`/patients/${searchId}`);
-        if(res.status === 404){ alert("Patient not found"); return; }
-        const data = await res.json();
-        let output = "";
-        for(const [key, val] of Object.entries(data)){
-            output += `${key.replace(/_/g,' ').toUpperCase()}: ${val}\n`;
-        }
-        document.getElementById("searchResult").innerText = output;
-    } catch(err){
-        alert('Search failed: '+err.message);
+    const result = await res.json();
+    if (result.status === 'success') {
+        alert(updateId ? "Patient updated" : "Patient saved");
+        window.location.href = 'records.html';
+    } else {
+        alert(result.message);
     }
 });

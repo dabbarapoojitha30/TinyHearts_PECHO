@@ -91,6 +91,52 @@ app.get("/patients/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+app.put("/patients/:id", async (req, res) => {
+  try {
+    const p = req.body;
+
+    await pool.query(`
+      UPDATE patients SET
+        diagnosis=$1,
+        situs_loop=$2,
+        systemic_veins=$3,
+        pulmonary_veins=$4,
+        atria=$5,
+        atrial_septum=$6,
+        av_valves=$7,
+        ventricles=$8,
+        ventricular_septum=$9,
+        outflow_tracts=$10,
+        pulmonary_arteries=$11,
+        aortic_arch=$12,
+        others_field=$13,
+        impression=$14
+      WHERE patient_id=$15
+    `, [
+      p.diagnosis,
+      p.situs_loop,
+      p.systemic_veins,
+      p.pulmonary_veins,
+      p.atria,
+      p.atrial_septum,
+      p.av_valves,
+      p.ventricles,
+      p.ventricular_septum,
+      p.outflow_tracts,
+      p.pulmonary_arteries,
+      p.aortic_arch,
+      p.others_field,
+      p.impression,
+      req.params.id
+    ]);
+
+    res.json({ status: "success" });
+  } catch (err) {
+    console.error("Update error:", err);
+    res.status(500).json({ status: "error", message: err.message });
+  }
+});
+
 
 app.delete("/patients/:id", async (req, res) => {
   try {
