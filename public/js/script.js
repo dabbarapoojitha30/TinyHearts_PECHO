@@ -145,3 +145,58 @@ form.addEventListener('submit', async e => {
         alert(result.message);
     }
 });
+// ------------------- DOWNLOAD PDF -------------------
+document.addEventListener("DOMContentLoaded", () => {
+    const downloadBtn = document.getElementById("downloadReport");
+    if(!downloadBtn) return;
+
+    downloadBtn.addEventListener("click", async () => {
+        const payload = {
+            patient_id: patientIdInput.value,
+            name: document.getElementById("name").value,
+            age: ageInput.value,
+            date: new Date().toLocaleDateString(),
+            sex: document.getElementById("sex").value,
+            weight: document.getElementById("weight").value,
+            diagnosis: getValue('diagnosis','diagnosisOther'),
+            situs_loop: getValue('situsLoop','situsLoopOther'),
+            systemic_veins: getValue('systemicVeins','systemicVeinsOther'),
+            pulmonary_veins: getValue('pulmonaryVeins','pulmonaryVeinsOther'),
+            atria: getValue('atria','atriaOther'),
+            atrial_septum: getValue('atrialSeptum','atrialSeptumOther'),
+            av_valves: getValue('avValves','avValvesOther'),
+            ventricles: getValue('ventricles','ventriclesOther'),
+            ventricular_septum: getValue('ventricularSeptum','ventricularSeptumOther'),
+            outflow_tracts: getValue('outflowTracts','outflowTractsOther'),
+            pulmonary_arteries: getValue('pulmonaryArteries','pulmonaryArteriesOther'),
+            aortic_arch: getValue('aorticArch','aorticArchOther'),
+            others_field: getValue('othersField','othersFieldOther'),
+            impression: getValue('impression','impressionOther')
+        };
+
+        if(!payload.name.trim()){
+            alert("Enter patient name before downloading PDF");
+            return;
+        }
+
+        try {
+            const res = await fetch("/generate-pdf", {
+                method: "POST",
+                headers: {"Content-Type":"application/json"},
+                body: JSON.stringify(payload)
+            });
+
+            if(!res.ok) throw new Error("Server returned " + res.status);
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `TinyHeartsReport-${payload.name}.pdf`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } catch(err){
+            alert("PDF generation failed: " + err.message);
+        }
+    });
+});

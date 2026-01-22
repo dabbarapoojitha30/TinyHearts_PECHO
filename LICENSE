@@ -1,0 +1,25 @@
+Pediatric Echocardiogram App
+© 2026 Student Project
+
+This project is a student demo application built for educational purposes and to demonstrate Pediatric Echocardiogram data management. It was created with assistance from AI (ChatGPT).
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files, to use, copy, and view the project for educational or demonstration purposes only.
+
+UPGRADATION / PROFESSIONAL NOTES:
+
+This demo project can be further developed for professional use with additional hosting and resources. For example, deploying on paid cloud instances (like Render) allows:
+- Zero Downtime
+- SSH Access
+- Scaling
+- Support for persistent disks
+
+Paid instance examples:
+1. Starter: $7/month | 512 MB RAM | 0.5 CPU
+2. Standard: $25/month | 2 GB RAM | 1 CPU
+3. Pro: $85/month | 4 GB RAM | 2 CPU
+4. Pro Plus: $175/month | 8 GB RAM | 4 CPU
+5. Pro Max: $225/month | 16 GB RAM | 4 CPU
+6. Pro Ultra: $450/month | 32 GB RAM | 8 CPU
+
+This section is for reference only. The current demo is fully functional for educational/hospital presentation purposes.
+
